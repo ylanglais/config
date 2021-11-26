@@ -1,0 +1,80 @@
+#/bin/bash
+#
+#
+# nice stuff...:
+#
+export over=`tput smso`
+export noover=`tput rmso`
+export bold=`tput bold`
+export nobold=`tput sgr0`
+export blink=`tput blink`
+export noblink=`tput sgr0`
+export italic=`tput sitm`
+export noitalic=`tput ritm`
+export under=`tput smul`
+export nounder=`tput rmul`
+export norm=`tput sgr0`
+#
+#
+#
+export black="[30m"
+export red="[31m"
+export green="[32m"
+export yellow="[33m"
+export blue="[34m"
+export magenta="[35m"
+export cyan="[36m"
+export white="[37m"
+#
+
+sites() {
+for i in /etc/apache2/sites-enabled/* ; 
+do 
+	echo $(basename $i)"  "$(grep Listen $i | cut -d" " -f2 | cut -d: -f1 | uniq | head -1) 
+done
+}
+
+ECHO() {
+	echo "$bold$yellow$*$norm"
+}
+
+_workon() {
+	local cur=${COMP_WORDS[COMP_CWORD]}
+	l=$(ls /etc/apache2/sites-enabled)
+	COMPREPLY=( $(compgen -W "${l}" -- $cur ) )
+}
+complete -F _workon workon 
+
+workon() {
+	[ $# -lt 1 ] && { 
+		echo -n "$green"
+		sites 
+		echo -n "$norm"
+		return
+	}
+	echo "$blue"trying /apps/web/$i$norm
+	[ -d /apps/web/$1 ] || {
+		echo "${bold}${red}$1 is an invalid site"
+		echo "availible site are:"
+		sites 
+		echo -n ${norm}
+		return
+	}
+	echo "$green"set up environment for $i$norm
+	
+	URL=$1
+	ROOT=/apps/web/$URL
+	IP=$(grep Listen /etc/apache2/sites-enabled/$URL | cut -d" " -f2 | cut -d: -f1 | uniq | head -1) 
+
+	alias surl='ECHO $URL'
+	alias sip='ECHO $IP'
+	alias root='cd $ROOT'
+	alias logs='cd $ROOT/logs'
+	alias html='cd $ROOT/htdocs/html'
+	alias visi='vi /etc/apache2/sites-enabled/$url'
+	PS1='
+$red${URL} \[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]
+'		
+}
+alias h=history
+

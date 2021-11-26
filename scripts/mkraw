@@ -1,0 +1,1 @@
+qemu-img create vm0-debian-stable-amd64.raw -f raw 10G

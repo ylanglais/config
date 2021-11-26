@@ -1,0 +1,14 @@
+#!/bin/bash
+
+IN="eDP1"
+EXT1="DP1-1"
+EXT2="DP1-2"
+
+exit
+
+# xrandr | grep "\bconnected" | cut -d" " -f1
+if (xrandr | grep "$EXT1 disconnected"); then
+    xrandr --output $EXT1 --off --output $EXT2 --output $IN --auto
+else
+	xrandr --output $EXT2 --primary --output $EXT1 --left-of $EXT2
+fi

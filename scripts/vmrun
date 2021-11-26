@@ -1,0 +1,39 @@
+vm=$1
+qemu-system-x86_64 \
+		-display none \
+        -daemonize \
+        -m 1G \
+        -smp 2,cores=2 \
+        -boot order=c,menu=on \
+		-net nic -net user,hostfwd=tcp::55555-:22 \
+		$vm
+
+
+# -net nic,model=virtio \
+# -netdev user,id=mynet0,hostfwd=tcp::55555-:22 \
+
+# -device virtio-net,netdev=net0 \
+#       -netdev user,id=net0,hostfwd=tcp::50022-:22 -net nic $vo
+#        -k fr \
+#        -rtc base=localtime,clock=host \
+		#-netdev user,id=mynet0,net=192.168.0.0/24,dhcpstart=192.168.0.5 \
+
+
+
+
+
+#qemu-system-x86_64 \
+#        -machine type=q35,accel=kvm:tcg \
+#        -cpu qemu64,+ssse3,+sse4.1,+sse4.2,+x2apic \
+#        -daemonize \
+#        -name $vm \
+#        -m $memory \
+#        -balloon virtio \
+#        -smp 2,cores=2 \
+#        -rtc base=localtime,clock=host \
+#        -boot order=c,menu=on \
+#        -drive if=none,id=drive0,aio=native,cache.direct=on,format=$image_format,media=disk,file=$vm \
+#        -device virtio-blk,drive=drive0,scsi=off,config-wce=off \
+#        -k fr \
+#        -vga qxl \
+#        -spice port=$((5900 + $num)),addr=localhost,disable-ticketing \

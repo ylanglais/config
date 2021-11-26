@@ -1,0 +1,20 @@
+#!/users/summitdev/COMMON/bin/perl
+#
+#
+$s=0;
+$path="";
+@arr=split(':', $ARGV[0]);
+foreach $pe (@arr) {
+	#print "$pe is not null\n";
+	$pe =~ s,//,/,g;
+	if (!($path =~ /$pe/)) {
+		if ($s == 0) {
+			$path=$pe;
+			$s++;
+		} else {
+			$path="$path:".$pe;
+		}
+	}
+}
+print $path;
+#$ENV{PATH}=$path;

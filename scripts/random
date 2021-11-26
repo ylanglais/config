@@ -1,0 +1,3 @@
+#!/bin/sh
+alea=`cat /proc/uptime | cut -d" " -f1 | sed -e 's/\.//'`
+expr $alea / $1 % $1

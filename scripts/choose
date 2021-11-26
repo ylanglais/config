@@ -1,0 +1,32 @@
+
+pm_choose() {
+	str=$1 
+	shift
+	typeset -a arr
+	arr=( $* )
+	while : 
+	do 
+		{
+		echo "$str" 
+		let c=1
+		for i in $*
+		do
+			printf "$norm$blue%3d$norm - %s\n" $c $i
+			let c=c+1
+		done
+		let c=c-1
+		echo -n "${bold}Your choice (1 - $c) -> $norm$blue"
+		read value
+		echo -n "$norm"
+		[[ $value -ge 1 ]] && [[ $value -le $c ]] && break 
+		echo "${yellow}${value}${red} is not a valid answer${norm}"
+		} >&3
+	done	
+
+	[ $0 = 'bash' ] && let value=value-1
+
+	echo ${arr[$value]}
+}
+#a=$(pm_choose "aaaa ?" a b c d e f g)
+#echo ""
+#echo "---> $a"

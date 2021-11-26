@@ -1,0 +1,1 @@
+nmap -sV -T4 -O -F --version-light 192.168.0.0/24 

@@ -1,0 +1,24 @@
+#!/bin/ksh
+[ _"$1" != _ -a _"$1" != _notify ] && {
+	di=$1 
+} || {
+	[ -f .db ] && di=$PWD || {
+		echo "Availible pfwk environments"
+		ls "*/.db" | cut -d"/" -f 1
+		exit 0;
+	}
+
+	[ -f $di/.db ] || {
+		echo "$bold${red}Error: directory $di doesn't contain a valid pfwk environment$norm"
+		exit 1;	
+	}
+}
+[ $PWD != $di -a $di != "." ] && {
+	echo "Entering $blue${bold}$di$norm:"
+	cd $di
+}
+. .db
+. scripts/func.sh
+export PATH=$PWD/scripts:$PATH
+echo "Environment set."
+

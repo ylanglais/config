@@ -1,0 +1,33 @@
+#
+# Text options:
+export over=$(tput smso)
+export noover=$(tput rmso)
+export bold=$(tput bold)
+export nobold=$(tput sgr0)
+export blink=$(tput blink)
+export noblink=$(tput sgr0)
+export italic=$(tput sitm)
+export noitalic=$(tput ritm)
+export under=$(tput smul)
+export nounder=$(tput rmul)
+export norm=$(tput sgr0)
+#
+# Foreground colors:
+export black=$(tput setaf 0)
+export red=$(tput setaf 1)
+export green=$(tput setaf 2)
+export yellow=$(tput setaf 3)
+export blue=$(tput setaf 4)
+export magenta=$(tput setaf 5)
+export cyan=$(tput setaf 6)
+export white=$(tput setaf 7)
+#
+# Background colors:
+export bgblack=$(tput setab 0)
+export bgred=$(tput setab 1)
+export bggreen=$(tput setab 2)
+export bgyellow=$(tput setab 3)
+export bgblue=$(tput setab 4)
+export bgmagenta=$(tput setab 5)
+export bgcyan=$(tput setab 6)
+export bgwhite=$(tput setab 7)

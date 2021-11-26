@@ -1,0 +1,5 @@
+PROMPT="%(?..%{[1;31m%}Error: %?
+)
+%{[1;35m%}%h%{[1;32m%} $Shell-$SessionID %{[1;31m%}%n@%M:%{[1;33m%}%/%{[1;30m%}%b         
+"
+export DISPLAY=localhost:10

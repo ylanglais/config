@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+echo "Process started @ $1 "
+echo "        ended   @ $2 "
+error=$3
+shift; shift
+echo command line : \"$*\" 
+echo terminated sucessfully
+read

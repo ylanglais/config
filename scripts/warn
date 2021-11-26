@@ -1,0 +1,4 @@
+#!/bin/bash
+start=`date`
+eval $* && (xterm -title "$1 processed successfully" -bg green -e warnok "$start" "`date`" $*) || \
+	(xterm -bg red -title "$1 processed with error $?" -e warnko "$start" "`date`" $? $*) 

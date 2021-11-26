@@ -1,0 +1,41 @@
+#!/bin/bash
+
+export sfile=$HOME/tmp/.sessions
+export lfile=$HOME/tmp/.sessions.lock
+# what shell:
+[ x"$MYSHELL" = "x" ] &&  export MYSHELL=$(basename $SHELL)
+pid=$1
+(
+	#
+	# lock:
+	flock -x 99 
+
+	# 
+	# Clean:
+	[ -f $sfile.new ] && rm $sfile.new
+	touch $sfile.new
+	for i in $(cut -d":" -f3 $sfile);  do
+		ps $i 2>/dev/null 1>&2 && {
+			grep ":$i" $sfile >> $sfile.new
+		} 
+	done			
+	sort $sfile.new | uniq > $sfile 
+
+	#
+	# Add pid:
+	#
+	# if ppid is referenced, reuse it:
+	(grep "^$MYSHELL:[^:]*:$pid$" $sfile | grep $MYSHELL) 2>/dev/null 1>&2 && {
+		echo $(grep ":$pid$" $sfile |grep $MYSHELL |cut -d":" -f2)
+		exit
+	}
+	for i in $(seq 0 64) ; do
+		grep "^$MYSHELL:$i:" $sfile 2>/dev/null 1>&2 || {
+			echo $MYSHELL:$i:$pid >>$sfile
+			echo $i
+			exit
+		}
+	done
+	echo "e"
+
+) 99>$lfile

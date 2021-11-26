@@ -1,0 +1,116 @@
+#!/usr/sbin/bash
+#
+if [ $# -ne 2 ] 
+then
+	echo $red${bold}usage $0 host1 host2$norm
+	exit 1 
+fi
+host1=$1
+host2=$2
+activ=""
+stdby=""
+
+rtest() {
+	rcmd $activ "$* && echo YES || echo NO" | grep YES 1>/dev/null 2>&1  && true || false
+}
+
+#
+#
+rcmd() {
+	host=$1; shift
+	( /usr/local/bin/ssg $host $* ) 2>&1 | tr -d "\r" |grep -v "Connection to services-sshgate closed."
+}
+#
+#
+differ() {
+	file=$1;
+	chk=$(rcmd $activ ls $file | tr -d '\r') 
+	if [ "$chk" == "$file" ] 
+	then 
+		echo "$cyan$file diff between $activ and $stdby:$norm"
+		(rcmd $activ cat $file) > $activ.tmp
+		(rcmd $stdby cat $file) > $stdby.tmp
+		diff -w $activ.tmp $stdby.tmp && echo "$green"files are identical$norm
+		return $?
+	else 
+		echo "${red}No $file on $activ$norm"
+	fi
+}
+diffcmd() {
+	cmd=$*;
+	echo "$cyan$cmd diff between $activ and $stdby:$norm"
+	(rcmd $activ $cmd) > $activ.tmp
+	(rcmd $stdby $cmd) > $stdby.tmp
+	diff -w $activ.tmp $stdby.tmp && echo "$green"cmd results are identical$norm
+}
+diffdir() {
+	dir=$1; shift
+	echo "$cyan$dir directory diff between $activ and $stdby:$norm"
+	(rcmd $activ cksum $dir/\*) > $activ.tmp
+	(rcmd $activ cksum $dir/\*) > $stdby.tmp
+	diff -w $activ.tmp $stdby.tmp && echo "$green"directories are identical 
+	return $?
+}
+
+#
+# Find active node:
+echo check $host1...
+(rcmd $host1 df) | grep /dev/drbd0 1>/dev/null 2<&1 && activ=$host1 || stdby=$host1
+echo check $host2...
+(rcmd $host2 df) | grep /dev/drbd0 1>/dev/null 2<&1 && activ=$host2 || stdby=$host2
+
+[ -z "$activ" ] && echo "$red${bold}ERROR: no active node found$norm"
+
+#
+#
+echo ""
+echo "Active  node: $cyan$activ$norm"
+echo "Standby node: $yellow$stdby$norm"
+echo ""
+
+echo "$cyan${bold}Site independant checks:$norm"
+echo "$cyan$bold------------------------$norm"
+diffcmd dpkg -l
+echo ""
+rtest ' [ -f /etc/apache2/apache2.conf ] ' && differ /etc/apache2/apache2.conf || echo "${cyan}No apache2 on ths cluster$norm"
+echo ""
+diffdir /etc/apache2/mods-enabled/
+echo ""
+diffdir /etc/php5/mods-available/
+echo ""
+
+differ  /etc/apache2/ports.conf
+echo ""
+rtest ' [ -f /etc/mysql/my.cnf ] ' && differ /etc/mysql/my.cnf || echo ${cyan}No mysql on this cluster$norm
+echo ""
+differ  /etc/php5/apache2/php.ini
+echo ""
+rtest ' [ -d /etc/php5/fpm ] ' && differ  /etc/php5/fpm/php.ini || echo ${cyan}No fpm on this cluster$norm
+echo ""
+rtest ' [ -f /etc/ssh/sshd-synchro_config ] ' && differ  /etc/ssh/sshd-synchro_config || echo ${cyan}No sshd-config on this cluster$norm
+echo ""
+echo "$cyan${bold}Site dependant checks:$norm"
+echo "$cyan$bold----------------------$norm"
+echo ""
+
+#
+# Check enabled sites:
+list=$(rcmd $activ ls /etc/apache2/sites-enabled )
+
+for site in $list ; do
+	echo "$yellow${bold}$site$norm:"
+	echo "$yellow${bold}$(echo $site:|sed -e 's/./-/g')$norm"
+	echo "$cyan$site$norm apache configuration diff:"
+	#
+	# diff site config:
+	differ  /etc/apache2/sites-enabled/$site
+	#
+	# diff php-fpm site conf:
+	rtest ' [ -d /etc/php5/fpm ] ' && differ /etc/php5/fpm/pool.d/$site.conf
+	echo ""
+done
+
+#
+# Cleanup:
+[ -f $activ.tmp ] && rm $activ.tmp
+[ -f $stdby.tmp ] && rm $stdby.tmp

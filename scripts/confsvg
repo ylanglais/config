@@ -1,0 +1,57 @@
+flist="
+.bash_profile
+.bashrc
+.zshenv
+.zshrc
+.exrc
+.vimrc
+.gvimrc
+.aliases/.bash
+.aliases/.zsh
+scripts/choose
+scripts/confsvg
+scripts/crypto
+scripts/displ
+scripts/gdb_allow_attach
+scripts/genpass.php
+scripts/h2rgb
+scripts/hour.pl
+scripts/issh
+scripts/mkqcow
+scripts/mkraw
+scripts/mll
+scripts/multicomp
+scripts/my_cluster_check_diff
+scripts/nscan
+scripts/nscan10
+scripts/nscan192
+scripts/random
+scripts/remote
+scripts/session_new
+scripts/setcolors
+scripts/setpath
+scripts/_sets
+scripts/sets
+scripts/ssl_decode_req
+scripts/standalone-startup
+scripts/table-sizes
+scripts/tempname
+scripts/unsetcolors
+scripts/vmrun
+scripts/warn
+scripts/warnko
+scripts/warnok
+"
+[ -d config ] && { 
+	echo $bold$red Remove config/ dir 1st$norm
+	exit 
+}
+mkdir -p config/.aliases config/scripts config/tmp config/.histfiles 
+for i in $(echo $flist) 
+do
+	cp $i config/$i
+done
+for i in .ds .dbs .prjs	
+do
+	head -1 $i > config/$i
+done

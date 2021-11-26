@@ -1,0 +1,14 @@
+#!/usr/sbin/perl
+print("$ARGV[0]\n");
+open(IN, $ARGV[0]);
+my $mll = 0;
+my $n = 0;
+while (<IN>) {
+	$n++;
+	my $ll = length;
+	if ($ll > $mll) {
+		$mll = $ll;		
+	}
+}
+close(IN);
+print("$mll\n");

@@ -1,0 +1,11 @@
+DB=$1
+
+ms() { 
+    mysql -rs --disable-pager $DB -e "$*"
+}
+
+tables=$(ms show tables)
+for t in $tables 
+do
+	echo $t $(ms "select count(*) from $t")
+done
