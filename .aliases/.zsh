@@ -83,7 +83,7 @@ function ff {
     find . -name $* -print
 }
 ssg () {
-	(xtitle "$*i"; xicon "$*i") 1>/dev/null 2>&1 
+	(xtitle "$*"; xicon "$*") 1>/dev/null 2>&1 
 	ssh $*
 	(xtitle "`hostname`-${Shell}-${SessionID} ${Pwd}"; xicon "`hostname`-${Shell}-${SessionID}") 1>/dev/null 1>&2 
 }
@@ -202,6 +202,32 @@ __get_dl() {
 __get_dw() {
 	[ -z $ds ] && return 7 
 	grep "^$ds:" $HOME/.ds | cut -d":" -f5
+}
+dbschema() {
+	__db_check || return $?
+	ds=$(__get_ds)
+	dn=$(__get_dn)
+	dt=$(__get_dt)
+	dh=$(__get_dh)
+	dp=$(__get_dp)
+	dl=$(__get_dl)
+	dw=$(__get_dw)
+
+	d=`date +"%Y%m%d"`
+	name=$dn.schema.$d.sql 	
+	[ -e $name ] && {
+		val=$(ls -C1 $dn.$d.[0-9]{1,}.sql 2>/dev/null | tail -1 | sed -e "s/^$dn.$d.\([0-9]\{1,\}\).sql$/\1/g")
+		[ -z $val ] && val=1 || let val=val+1
+		name=$dn.$d.$val.sql 	
+	}
+	echo "Dump database $bold$green$dn$norm to $bold$yellow$name$norm"
+
+	[ $dt = "mysql" ] && {
+		mysqldump -h $dh -u $dl -p$dw -P $dp --lock-tables=false -d $dn $* > $name
+		true
+	} || {
+		PGPASSWORD=$(__get_dw) pg_dump -s -h$dh $dn -U $dl $* > $name
+	}
 }
 dbdmp() {
 	__db_check || return $?
@@ -616,11 +642,11 @@ differ() {
 		hh1="$h1:"
 		r1=$(ssh $h1 "echo $r1")
 		rep1=$hh1$r1
-		l1="ssh $h1 \ls $r1"
+		l1="ssh $h1 \ls -bQ $r1"
 	} || {
 		r1=$rep1
 		h1=""
-		l1="\ls $r1"
+		l1="\ls -bQ $r1"
 	}
 	
 	echo $rep2 | egrep "^[a-zA-Z0-9@._-]*:.*$" >/dev/null 2>&1 && {
@@ -629,12 +655,12 @@ differ() {
 		r2=$(ssh $h2 "echo $r2")
 		hh2="$h2:"
 		rep2=$hh2$r1
-		l2="ssh $h2 \ls $r2"
+		l2="ssh $h2 \ls -Qb $r2"
 	} || {
 		r2=$rep2
 		h2=""
 		hh2=""
-		l2="\ls $r2"
+		l2="\ls -Qb $r2"
 	}
 
 	#echo differ $hh1$r1 $hh2$r2
@@ -786,10 +812,13 @@ compctl -K _lldb lldb
 compctl -K _lsdb lsdb
 compctl -K _lsdb setdb
 compctl -K _lsdb dbdmp
+compctl -K _lsdb dbschema
 compctl -K _lldb setldb
 compctl -K _lldb dumpdb
 compctl -K _lldb mysql
 compctl -K _lldb mysqldump
 compctl -K _lldb dumpmodel
-compctl -K _lldb truncatedb
+compctl -K _lldb truncatedb 
 compctl -K _cols cols
+
+[ -f ~/.aliases/.docker ] && . ~/.aliases/.docker

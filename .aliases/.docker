@@ -1,0 +1,11 @@
+alias di='sudo docker image'
+alias dk='sudo docker'
+alias dps='sudo docker ps'
+alias dl='sudo docker logs'
+alias dc='sudo docker container'
+alias dch='sudo docker container --help'
+alias dn='sudo docker network'
+alias dv='sudo docker volume'
+alias dr='sudo docker run'
+function de() { sudo docker exec -it $* ; xns }
+alias dip='sudo docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}"'
