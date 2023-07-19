@@ -78,7 +78,7 @@ export LD_LIBRARY_PATH=$HOME/lib:$LD_LIBRARY_PATH
 	unset jv
 	sqr=$(ls -d /opt/squirrel-sql* | tail -1)
 	[ -n $sqr ] && export PATH=$sqr:$PATH
-	unset $sqr
+	unset sqr
 }
 }
 #

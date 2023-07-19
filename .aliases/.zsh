@@ -691,11 +691,11 @@ differ() {
 		hh1="$h1:"
 		r1=$(ssh $h1 "echo $r1")
 		rep1=$hh1$r1
-		l1="ssh $h1 \ls -abQ $r1"
+		l1="ssh $h1 \ls -a $r1"
 	} || {
 		r1=$rep1
 		h1=""
-		l1="\ls -abQC1 $r1 | grep -vE '^\"\.\"$|^\"\.\.\"$'"
+		l1="\ls -aC1 $r1 | grep -vE '^\.$|^\.\.$'"
 	}
 	
 	echo $rep2 | egrep "^[a-zA-Z0-9@._-]*:.*$" >/dev/null 2>&1 && {
