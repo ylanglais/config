@@ -39,8 +39,6 @@ export IS_A_LOGIN_SHELL=False
 #
 #. $HOME/.sp.sh
 #
-#
-#
 #MWMSHELL=/bin/zsh
 export X11LIB=/usr/lib/
 export X11INC=/usr/include
@@ -50,7 +48,6 @@ export X11HOME=/usr/
 export XSYSTEM=/usr/
 #
 # Minimal path setting:
-#
 export PATH=/usr/local/bin:/usr/games/bin:/usr/sbin:/usr/bin:/bin:/sbin
 export LD_LIBRARY_PATH=$HOME/lib:$LD_LIBRARY_PATH
 
@@ -58,7 +55,6 @@ export LD_LIBRARY_PATH=$HOME/lib:$LD_LIBRARY_PATH
 
 #
 # Sunstudio12: 
-#
 [ -d /opt/sunstudio12 ] && {
 	export PATH=/opt/sunstudio12/bin:$PATH
 	export LD_LIBRARY_PATH=$HOME/lib:/opt/sunstudio12/lib:/usr/local/lib:${LD_LIBRARY_PATH}
@@ -67,7 +63,6 @@ export LD_LIBRARY_PATH=$HOME/lib:$LD_LIBRARY_PATH
 
 #
 # Android Studio:
-#
 [ -d /opt/android-sdk-linux/platform-tools ] && { 
 	export PATH=/opt/android-sdk-linux/platform-tools:$PATH
 	jv=$(ls -d /opt/jdk* | tail -1)
@@ -78,9 +73,8 @@ export LD_LIBRARY_PATH=$HOME/lib:$LD_LIBRARY_PATH
 }
 #
 # Squirrel-sql:
-#
 [ -f /usr/sbin/squirrel-sql ] || {
-[ -d /opt/squirrel-sql* ] && {
+[ -d /opt/squirrel-sql ] && {
 	unset jv
 	sqr=$(ls -d /opt/squirrel-sql* | tail -1)
 	[ -n $sqr ] && export PATH=$sqr:$PATH
@@ -88,8 +82,13 @@ export LD_LIBRARY_PATH=$HOME/lib:$LD_LIBRARY_PATH
 }
 }
 #
-# Firefox, thunderbird, libreoffice & google chrome:
+#Oracle stuff: 
+[ -d /usr/lib/oracle/21/client64 ] && {
+	export ORACLE_HOME=/usr/lib/oracle/21/client64
+	LD_LIBRARY_PATH=${ORACLE_HOME}/lib:${LD_LIBRARY_PATH}
+}
 #
+# Firefox, thunderbird, libreoffice & google chrome:
 [ -d /opt/firefox             ] && export PATH=/opt/firefox:$PATH
 [ -d /opt/thunderbird/        ] && export PATH=/opt/thunderbird:$PATH
 [ -d /opt/libreoffice/program ] && export PATH=$PATH:/opt/libreoffice/program
@@ -97,7 +96,6 @@ export LD_LIBRARY_PATH=$HOME/lib:$LD_LIBRARY_PATH
 
 #
 # AMABIS:
-#
 [ -d /opt/amabis              ] && export PATH=/opt/amabis/bin:$PATH
 #
 #

@@ -20,10 +20,6 @@ alias lrs='ls -lrS  --color'
 alias las='ls -alS  --color'
 alias lar='ls -alrS --color'
 
-alias tfe='tail -f logs/error.log'
-alias tfa='tail -f logs/access.log'
-alias tfl='tail -f logs/*.log'
-
 alias diff='diff --color=auto'
 
 alias h="history -1000"
@@ -52,7 +48,12 @@ rot13() {
         tr "[a-m][n-z][A-M][N-Z]" "[n-z][a-m][N-Z][A-M]" < $1
     fi
 }  
-
+flds() {
+	head -1 $1 | sed -e "s/;/\n/g" | nl
+}
+fldnums() {
+	head -1 $1 | sed -e "s/;/\n/g" | nl | egrep $2 | tr -s " 	" " " | cut -d" " -f 2 | sed -e "s/\n/,/" | tr '\n' ',' | sed -e 's/,$//'
+}
 hosts() {
 	#
 	# Special own aliases:
@@ -83,13 +84,49 @@ function ff {
     find . -name $* -print
 }
 ssg () {
-	(xtitle "$*"; xicon "$*") 1>/dev/null 2>&1 
+	export xns=$_xnames; 
+	(xtitle "$*i"; xicon "$*i") 1>/dev/null 2>&1 
 	ssh $*
-	(xtitle "`hostname`-${Shell}-${SessionID} ${Pwd}"; xicon "`hostname`-${Shell}-${SessionID}") 1>/dev/null 1>&2 
+	xnames $xns
 }
 ssi() {
 	ssh -p 55555 ilay.org 
 }
+tfe() {
+	[ -d ./logs -a -f logs/error.log ] && {
+		(
+			export xns=$_xnames; 
+			ctrlc() { xnames $xns }
+			trap ctrlc INT
+			xnames "$PRJ: >>>>  logs/error.log" ; 
+			tail -f logs/error.log
+		)
+	} || echo "No logs/error.log file to tail -f"
+}
+tfa() {
+	[ -d ./logs -a -f logs/access.log ] && {
+		(
+			export xns=$_xnames; 
+			ctrlc() { xnames $xns }
+			trap ctrlc INT
+			xnames "$PRJ: >>>>  logs/access.log" ; 
+			tail -f logs/access.log
+		)
+	} || echo "No logs/error.log file to tail -f"
+}
+tfl() {
+	[ -d ./logs  ] && {
+		(
+			export xns=$_xnames; 
+			ctrlc() { xnames $xns }
+			trap ctrlc INT
+			xnames "$PRJ: >>>>  logs/*.log" ; 
+			tail -f logs/*.log
+		)
+	} || echo "No logs/ directory -f"
+}
+
+
 sete() {
 	e=$1
 	[ -f ~/.prjs ] || {
@@ -102,7 +139,7 @@ sete() {
 	cd $PRJDIR
 }
 _sete() {
-	reply=(`cut -d: -f 1 ~/.prjs`)
+	reply=( `grep -v "^#" ~/.prjs |cut -d: -f 1 `)
 }
 dbname() {
 	[ -z $DBNAME ] || { 
@@ -203,32 +240,6 @@ __get_dw() {
 	[ -z $ds ] && return 7 
 	grep "^$ds:" $HOME/.ds | cut -d":" -f5
 }
-dbschema() {
-	__db_check || return $?
-	ds=$(__get_ds)
-	dn=$(__get_dn)
-	dt=$(__get_dt)
-	dh=$(__get_dh)
-	dp=$(__get_dp)
-	dl=$(__get_dl)
-	dw=$(__get_dw)
-
-	d=`date +"%Y%m%d"`
-	name=$dn.schema.$d.sql 	
-	[ -e $name ] && {
-		val=$(ls -C1 $dn.$d.[0-9]{1,}.sql 2>/dev/null | tail -1 | sed -e "s/^$dn.$d.\([0-9]\{1,\}\).sql$/\1/g")
-		[ -z $val ] && val=1 || let val=val+1
-		name=$dn.$d.$val.sql 	
-	}
-	echo "Dump database $bold$green$dn$norm to $bold$yellow$name$norm"
-
-	[ $dt = "mysql" ] && {
-		mysqldump -h $dh -u $dl -p$dw -P $dp --lock-tables=false -d $dn $* > $name
-		true
-	} || {
-		PGPASSWORD=$(__get_dw) pg_dump -s -h$dh $dn -U $dl $* > $name
-	}
-}
 dbdmp() {
 	__db_check || return $?
 	ds=$(__get_ds)
@@ -280,6 +291,32 @@ dbdmpcmd() {
 		PGPASSWORD=$(__get_dw) pgdump -h$dh $dn -U $dl $* > $name
 	}
 }
+dbschema() {
+	__db_check || return $?
+	ds=$(__get_ds)
+	dn=$(__get_dn)
+	dt=$(__get_dt)
+	dh=$(__get_dh)
+	dp=$(__get_dp)
+	dl=$(__get_dl)
+	dw=$(__get_dw)
+
+	d=`date +"%Y%m%d"`
+	name=$dn.schema.$d.sql 	
+	[ -e $name ] && {
+		val=$(ls -C1 $dn.$d.[0-9]{1,}.sql 2>/dev/null | tail -1 | sed -e "s/^$dn.$d.\([0-9]\{1,\}\).sql$/\1/g")
+		[ -z $val ] && val=1 || let val=val+1
+		name=$dn.$d.$val.sql 	
+	}
+	echo "Dump database $bold$green$dn$norm to $bold$yellow$name$norm"
+
+	[ $dt = "mysql" ] && {
+		mysqldump -h $dh -u $dl -p$dw -P $dp -d --lock-tables=false $dn $* > $name
+		true
+	} || {
+		PGPASSWORD=$(__get_dw) pg_dump -s -h$dh $dn -U $dl $* > $name
+	}
+}
 pg() {
 	__db_check || return $?
 	ds=$(__get_ds)
@@ -320,6 +357,13 @@ msql() {
 		true
 	}
 }
+xnrst() {
+	[[ -v PRJ ]] && sete $PRJ || {
+		[[ -v DBNAME ]] && setdb $DBNAME || {
+			xnames "$(hostname)-${Shell}-${SessionID} $(basename ${PWD})"
+		}
+	}
+}
 sql() {
 	__db_check || return $?
 	ds=$(__get_ds)
@@ -330,6 +374,10 @@ sql() {
 	dl=$(__get_dl)
 	dw=$(__get_dw)
 
+	export xns=$_xnames; 
+	ctrlc() { xnames $xns }
+	trap ctrlc INT
+	xnames "$(hostname) ${Shell}-${SessionID} sql $dn"
 	[ $dt = "mysql" ] && {
 		[ -z "$DBNOPAD" ] && { pad="" } || { pad="-B"      }
 		[ -z "$DBNOTI"  ] && { ti=""  } || { ti="--skip-column-names" }
@@ -345,12 +393,13 @@ sql() {
 		[ -z "$DBSEP"   ] && { sep="" } || { sep="-R $DBSEP" }
 		[ -z "$DBNOTI" ]  && { ti=""  } || { ti="-t"         }
 		[ $# -ge 1 ] && {
-			PGPASSWORD=$(__get_dw) psql -h$dh $dn -U $dl -P pager=off -A $sep $pad $ti -c "$*" 
+			PGPASSWORD=$(__get_dw) psql -h$dh -p $dp $dn -U $dl -P pager=off -A $sep $pad $ti -c "$*" 
 			true
 		} || {
-			PGPASSWORD=$(__get_dw) psql -h$dh $dn -U $dl -P pager=off $sep $pad $ti
+			PGPASSWORD=$(__get_dw) psql -h$dh -p $dp $dn -U $dl -P pager=off $sep $pad $ti
 		}
 	}
+	xnames $xns
 }
 sqlcmd() {
 	__db_check || return $?
@@ -642,11 +691,11 @@ differ() {
 		hh1="$h1:"
 		r1=$(ssh $h1 "echo $r1")
 		rep1=$hh1$r1
-		l1="ssh $h1 \ls -bQ $r1"
+		l1="ssh $h1 \ls -abQ $r1"
 	} || {
 		r1=$rep1
 		h1=""
-		l1="\ls -bQ $r1"
+		l1="\ls -abQC1 $r1 | grep -vE '^\"\.\"$|^\"\.\.\"$'"
 	}
 	
 	echo $rep2 | egrep "^[a-zA-Z0-9@._-]*:.*$" >/dev/null 2>&1 && {
@@ -818,7 +867,8 @@ compctl -K _lldb dumpdb
 compctl -K _lldb mysql
 compctl -K _lldb mysqldump
 compctl -K _lldb dumpmodel
-compctl -K _lldb truncatedb 
+compctl -K _lldb truncatedb
 compctl -K _cols cols
 
 [ -f ~/.aliases/.docker ] && . ~/.aliases/.docker
+[ -f ~/.aliases/.work   ] && . ~/.aliases/.work

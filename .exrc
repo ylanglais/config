@@ -1,3 +1,4 @@
+
 set nu
 set noro
 set noai
@@ -7,9 +8,9 @@ set tabstop=4
 set shiftwidth=4
 set showmode
 set tags=tags
-set shell=/bin/sh
-#map  I/* * A*/
-#map  ^xx$xxj
+set shell=/bin/bash
+map  I/* * A*/
+map  ^xx$xxj
 #map & i/* $a */^j
 #map  bi (ea) 
 #map [A k
